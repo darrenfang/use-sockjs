@@ -1,0 +1,9 @@
+/.git
+/.idea
+/docs
+/node_modules
+.editorconfig
+.eslintignore
+.eslintrc
+.npmignore
+*.tgz
