@@ -1,7 +1,6 @@
-
-import { useEffect } from 'react'
+import {useEffect} from 'react'
 import * as SockJS from 'sockjs-client'
-import { Frame, over, Client, Message } from 'stompjs'
+import {Client, Frame, Message, over} from 'stompjs'
 
 interface Options {
   url: string,
@@ -14,7 +13,7 @@ interface Options {
 }
 
 export function useSockJs(options: Options) {
-  const { url, topic, headers, subscribeHeaders, onMessage, onError, debug } = options
+  const {url, topic, headers, subscribeHeaders, onMessage, onError, debug} = options
 
   let client: Client = {} as Client
 
@@ -35,10 +34,11 @@ export function useSockJs(options: Options) {
     })
 
     return () => {
-      client.unsubscribe(topic)
-      client.disconnect(() => {
-      })
-
+      if (client.connected) {
+        client.unsubscribe(topic)
+        client.disconnect(() => {
+        })
+      }
     }
   }, [])
 
