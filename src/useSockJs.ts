@@ -5,8 +5,8 @@ import {Client, Frame, Message, over} from 'stompjs'
 interface Options {
   url: string,
   topic: string,
-  headers: object,
-  subscribeHeaders: object,
+  headers?: object,
+  subscribeHeaders?: object,
   onMessage: (message: Message) => void,
   onError: (error: Frame | string) => void,
   debug?: boolean
@@ -25,7 +25,7 @@ export function useSockJs(options: Options) {
       }
     }
 
-    client.connect(headers, () => {
+    client.connect(headers || {}, () => {
       client.subscribe(topic, (msg: Message) => {
         onMessage(msg)
       }, subscribeHeaders)
