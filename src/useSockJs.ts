@@ -1,46 +1,52 @@
 import {useEffect} from 'react'
 import * as SockJS from 'sockjs-client'
-import {Client, Frame, Message, over} from 'stompjs'
+import {Client, Frame, over} from 'stompjs'
 
 interface Options {
-  url: string,
-  topic: string,
-  headers?: object,
-  subscribeHeaders?: object,
-  onMessage: (message: Message) => void,
-  onError: (error: Frame | string) => void,
+  ready: boolean
+  url: string
+  headers?: object
+  onConnected: (client: Client) => void
+  onDisconnected?: () => void
+  onError?: (error: Frame | string) => void
   debug?: boolean
 }
 
 export function useSockJs(options: Options) {
-  const {url, topic, headers, subscribeHeaders, onMessage, onError, debug} = options
-
-  let client: Client = {} as Client
+  const {ready, url, headers, onConnected, onError, debug, onDisconnected} = options
 
   useEffect(() => {
-    client = over(new SockJS(url))
+    if (!ready) {
+      return
+    }
 
+    let client: Client = over(new SockJS(url))
     if (!debug) {
       client.debug = () => {
       }
     }
 
     client.connect(headers || {}, () => {
-      client.subscribe(topic, (msg: Message) => {
-        onMessage(msg)
-      }, subscribeHeaders)
+      onConnected(client)
     }, (error: Frame | string) => {
-      onError(error)
+      if (onError) {
+        onError(error)
+      }
     })
 
     return () => {
+      if (onDisconnected) {
+        onDisconnected()
+      }
+
       if (client.connected) {
-        client.unsubscribe(topic)
+        const subscriptions = client.subscriptions
+        for (const subscription in subscriptions) {
+          client.unsubscribe(subscription)
+        }
         client.disconnect(() => {
         })
       }
     }
-  }, [])
-
-  return client
+  }, [ready])
 }

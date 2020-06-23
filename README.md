@@ -25,4 +25,22 @@ useSockJs({
   onError: (error: Frame | string) => {},
   debug: true
 })
+
+useSockJs({
+    ready: true,
+    url: `http://localhost:8080/websocket`,
+    header: {},
+    onConnected: client => {
+      client.subscribe('/topic/topic_name', message => {
+        console.log(message)
+      })
+    },
+    onDisconnected: () => {
+      console.log('onDisconnected')
+    },
+    onError: error => {
+      console.log(error)
+    },
+    debug: true
+  })
 ```
