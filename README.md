@@ -17,16 +17,6 @@ import { useSockJs } from 'use-sockjs'
 import { Frame, Message } from 'stompjs'
 
 useSockJs({
-  url: `http://localhost:8080/websocket`,
-  topic: '/user/queue/messages',
-  headers: {},
-  subscribeHeaders: {},
-  onMessage: (message: Message) => {},
-  onError: (error: Frame | string) => {},
-  debug: true
-})
-
-useSockJs({
     ready: true,
     url: `http://localhost:8080/websocket`,
     header: {},
