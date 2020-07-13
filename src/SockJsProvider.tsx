@@ -24,6 +24,7 @@
  */
 
 import * as React from 'react'
+import { useRef } from 'react'
 import { ISockJsContext, ISubscribeOptions, SockJsContext } from './ISockJsContext'
 import { Client, Frame, over, Subscription } from 'stompjs'
 import * as SockJS from 'sockjs-client'
@@ -31,75 +32,57 @@ import * as SockJS from 'sockjs-client'
 interface Props {
   url: string
   debug?: boolean
-  onError?: (error: Frame | string) => void
+  onError?: (error: Frame | string) => any
 }
 
 export const SockJsProvider: React.FunctionComponent<Props>
   = ({
        url,
        debug,
-       onError,
+       onError: globalOnError,
        children
      }) => {
 
-  const disconnectHandler = (client: Client) => {
-    if (!client) {
-      return
-    }
+  const clientRef = useRef<Client | null>(null)
 
-    if (client.connected) {
-      const subscriptions = client.subscriptions
-      for (const subscription in subscriptions) {
-        client.unsubscribe(subscription)
-      }
-      client.disconnect(() => {
-      })
-    }
-  }
-
-  const subscribeHandler = ({ headers, destination, onMessage, onSubscribed }: ISubscribeOptions): Client => {
+  const subscribeHandler = ({ headers, destination, onMessage, onSubscribed, onError }: ISubscribeOptions): Client => {
     const client = over(new SockJS(url))
+    clientRef.current = client
+
     if (!debug) {
-      client.debug = () => {
+      clientRef.current.debug = () => {
       }
     }
 
-    client.connect(headers || {}, () => {
-        if (!client) {
-          return
-        }
-
-        const subscription = client.subscribe(destination, onMessage, headers)
-        if (onSubscribed) {
-          onSubscribed(subscription)
-        }
-      },
-      error => {
-        if (onError) {
-          onError(error)
-        }
-      })
+    clientRef.current.connect(headers || {}, () => {
+      const subscription = client.subscribe(destination, onMessage, headers)
+      if (onSubscribed) {
+        onSubscribed(subscription)
+      }
+    }, onError || globalOnError)
     return client
   }
 
-  const unsubscribeHandler = (client: Client, subscription: Subscription) => {
-    if (!client) {
-      return
-    }
+  const unsubscribeHandler = (subscription?: Subscription) => {
+    if (clientRef.current && clientRef.current.connected) {
+      if (subscription && subscription.id) {
+        clientRef.current.unsubscribe(subscription.id)
+      } else {
+        for (const sub in clientRef.current.subscriptions) {
+          clientRef.current.unsubscribe(sub)
+        }
+      }
 
-    if (client.connected && subscription.id) {
-      client.unsubscribe(subscription.id)
-
-      if (Object.keys(client.subscriptions).length === 0) {
-        disconnectHandler(client)
+      if (Object.keys(clientRef.current.subscriptions).length === 0) {
+        clientRef.current.disconnect(() => {
+        })
       }
     }
   }
 
   const provider: ISockJsContext = {
     subscribe: subscribeHandler,
-    unsubscribe: unsubscribeHandler,
-    disconnect: disconnectHandler
+    unsubscribe: unsubscribeHandler
   }
 
   return (

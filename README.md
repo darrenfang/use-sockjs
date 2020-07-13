@@ -26,6 +26,7 @@ const App = () => {
         url='http://localhost/ws'
         onError={(error: Frame | string) => {
         }}
+        debug: false
     >
       {/* ... */}
     </SockJsProvider>
@@ -40,18 +41,30 @@ Call the `useSockJs` hook in the components.
 ```typescript jsx
 import React from 'react'
 import { useSockJs } from 'use-sockjs'
-import { Frame, Message } from 'stompjs'
+import { Client, Frame, Message, Subscription } from 'stompjs'
 
 export const MyComponent: React.FunctionComponent = () => {
+  const { subscribe, unsubscribe } = useSockJs()
+
+  const clientRef = useRef<Client | null>(null)
+  const subscriptionRef = useRef<Subscription | null>(null)
+
   useEffect(() => {
-    const client = subscribe({
+    clientRef.current = subscribe({
       destination: 'destination',
       headers: {},
       onMessage: message => {
       },
-      onSubscribed: (_subscription) => {
+      onSubscribed: (subscription) => {
+        subscriptionRef.current = subscription
+      },
+      onError: (error) => {
       }
     })
+
+    return ()=>{
+        unsubscribe(subscriptionRef.current)
+    }
   }, [])
 
   return (
