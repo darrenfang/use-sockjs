@@ -6,31 +6,56 @@
 
 React Hook for SockJs
 
-## Usage
+## Installation
 
 ```shell
 yarn add use-sockjs
 ```
 
-```typescript
+## Usage
+
+Wrap your app inside the SockJsProvider component.
+
+```typescript jsx
+import React from 'react'
+import { SockJsProvider } from 'use-sockjs'
+
+const App = () => {
+  return (
+    <SockJsProvider
+        url='http://localhost/ws'
+        onError={(error: Frame | string) => {
+        }}
+    >
+      {/* ... */}
+    </SockJsProvider>
+  )
+}
+
+export default App
+```
+
+Call the `useSockJs` hook in the components.
+
+```typescript jsx
+import React from 'react'
 import { useSockJs } from 'use-sockjs'
 import { Frame, Message } from 'stompjs'
 
-useSockJs({
-    ready: true,
-    url: `http://localhost:8080/websocket`,
-    header: {},
-    onConnected: client => {
-      client.subscribe('/topic/topic_name', message => {
-        console.log(message)
-      })
-    },
-    onDisconnected: () => {
-      console.log('onDisconnected')
-    },
-    onError: error => {
-      console.log(error)
-    },
-    debug: true
-  })
+export const MyComponent: React.FunctionComponent = () => {
+  useEffect(() => {
+    const client = subscribe({
+      destination: 'destination',
+      headers: {},
+      onMessage: message => {
+      },
+      onSubscribed: (_subscription) => {
+      }
+    })
+  }, [])
+
+  return (
+    <div></div>
+  )
+}
 ```
