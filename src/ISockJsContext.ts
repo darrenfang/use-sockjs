@@ -35,8 +35,10 @@ export interface ISubscribeOptions {
 }
 
 export interface ISockJsContext {
-  subscribe: (options: ISubscribeOptions) => Client
-  unsubscribe: (subscription?: Subscription) => void
+  client: Client | null
+  subscribe: (options: ISubscribeOptions) => void
+  unsubscribe: (subscription: Subscription) => void
+  disconnect: () => void
 }
 
 export const SockJsContext = React.createContext<ISockJsContext>({} as ISockJsContext)
