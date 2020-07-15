@@ -41,7 +41,7 @@ export const SockJsProvider: React.FunctionComponent<Props>
        url,
        debug,
        headers,
-       onError: globalOnError,
+       onError,
        children
      }) => {
 
@@ -62,10 +62,10 @@ export const SockJsProvider: React.FunctionComponent<Props>
 
     clientRef.current.connect(headers || {}, () => {
       setConnected(true)
-    }, globalOnError)
+    }, onError)
   }, [])
 
-  const subscribeHandler = ({ headers, destination, onMessage, onSubscribed, onError }: ISubscribeOptions) => {
+  const subscribeHandler = ({ headers, destination, onMessage, onSubscribed }: ISubscribeOptions) => {
     if (!clientRef.current) {
       return
     }

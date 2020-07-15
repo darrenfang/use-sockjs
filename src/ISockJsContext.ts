@@ -24,13 +24,12 @@
  */
 
 import * as React from 'react'
-import { Client, Frame, Message, Subscription } from 'stompjs'
+import { Client, Message, Subscription } from 'stompjs'
 
 export interface ISubscribeOptions {
   destination: string
   onMessage?: (message: Message) => any
   onSubscribed?: (subscription: Subscription) => void
-  onError?: (error: Frame | string) => any
   headers?: {}
 }
 
