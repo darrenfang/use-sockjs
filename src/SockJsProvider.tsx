@@ -24,48 +24,25 @@
  */
 
 import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
-import { ISockJsContext, ISubscribeOptions, SockJsContext } from './ISockJsContext'
-import { Client, Frame, over, Subscription } from 'stompjs'
+import {useRef, useState} from 'react'
+import {IConnectOptions, ISockJsContext, ISubscribeOptions, SockJsContext} from './ISockJsContext'
+import {Client, Frame, over, Subscription} from 'stompjs'
 import * as SockJS from 'sockjs-client'
 
 interface Props {
-  url: string
-  debug?: boolean
-  headers?: object
   onError?: (error: Frame | string) => any
 }
 
 export const SockJsProvider: React.FunctionComponent<Props>
   = ({
-       url,
-       debug,
-       headers,
-       onError,
+       onError: globalErrorHandler,
        children
      }) => {
 
   const clientRef = useRef<Client | null>(null)
   const [connected, setConnected] = useState(false)
 
-  useEffect(() => {
-    if (clientRef.current && clientRef.current.connected) {
-      return
-    }
-
-    clientRef.current = over(new SockJS(url))
-
-    if (!debug) {
-      clientRef.current.debug = () => {
-      }
-    }
-
-    clientRef.current.connect(headers || {}, () => {
-      setConnected(true)
-    }, onError)
-  }, [])
-
-  const subscribeHandler = ({ headers, destination, onMessage, onSubscribed }: ISubscribeOptions) => {
+  const subscribeHandler = ({headers, destination, onMessage, onSubscribed}: ISubscribeOptions) => {
     if (!clientRef.current) {
       return
     }
@@ -84,6 +61,23 @@ export const SockJsProvider: React.FunctionComponent<Props>
     }
   }
 
+  const connectHandler = ({url, debug, headers, onError}: IConnectOptions) => {
+    if (clientRef.current) {
+      return
+    }
+
+    clientRef.current = over(new SockJS(url))
+
+    if (!debug) {
+      clientRef.current.debug = () => {
+      }
+    }
+
+    clientRef.current.connect(headers || {}, () => {
+      setConnected(true)
+    }, onError || globalErrorHandler)
+  }
+
   const disconnectHandler = () => {
     if (clientRef.current && clientRef.current.connected) {
       for (const subscription in clientRef.current.subscriptions) {
@@ -96,9 +90,10 @@ export const SockJsProvider: React.FunctionComponent<Props>
 
   const provider: ISockJsContext = {
     client: clientRef.current,
+    connect: connectHandler,
+    disconnect: disconnectHandler,
     subscribe: subscribeHandler,
-    unsubscribe: unsubscribeHandler,
-    disconnect: disconnectHandler
+    unsubscribe: unsubscribeHandler
   }
 
   return (

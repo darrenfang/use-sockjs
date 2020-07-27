@@ -24,7 +24,7 @@
  */
 
 import * as React from 'react'
-import { Client, Message, Subscription } from 'stompjs'
+import {Client, Frame, Message, Subscription} from 'stompjs'
 
 export interface ISubscribeOptions {
   destination: string
@@ -33,11 +33,19 @@ export interface ISubscribeOptions {
   headers?: {}
 }
 
+export interface IConnectOptions {
+  url: string
+  debug?: boolean
+  headers?: object
+  onError?: (error: Frame | string) => any
+}
+
 export interface ISockJsContext {
   client: Client | null
+  connect: (options: IConnectOptions) => void
+  disconnect: () => void
   subscribe: (options: ISubscribeOptions) => void
   unsubscribe: (subscription: Subscription) => void
-  disconnect: () => void
 }
 
 export const SockJsContext = React.createContext<ISockJsContext>({} as ISockJsContext)
