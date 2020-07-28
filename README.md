@@ -23,10 +23,8 @@ import { SockJsProvider } from 'use-sockjs'
 const App = () => {
   return (
     <SockJsProvider
-        url='http://localhost/ws'
         onError={(error: Frame | string) => {
         }}
-        debug: false
     >
       {/* ... */}
     </SockJsProvider>
@@ -44,28 +42,39 @@ import { useSockJs } from 'use-sockjs'
 import { Client, Frame, Message, Subscription } from 'stompjs'
 
 export const MyComponent: React.FunctionComponent = () => {
-  const { subscribe, unsubscribe } = useSockJs()
+  const { client, connect, disconnect, subscribe } = useSockJs()
 
-  const clientRef = useRef<Client | null>(null)
   const subscriptionRef = useRef<Subscription | null>(null)
 
+  // connect websocket when init
   useEffect(() => {
-    clientRef.current = subscribe({
+    connect({
+      url: 'http://localhost/ws'
+    })
+  }, [])
+
+  // subscribe topic when client connected
+  useEffect(() => {
+    if (!client || !client.connected) {
+      return
+    }
+
+    subscribe({
       destination: 'destination',
-      headers: {},
       onMessage: message => {
       },
       onSubscribed: (subscription) => {
         subscriptionRef.current = subscription
-      },
-      onError: (error) => {
       }
     })
 
     return ()=>{
+      if(subscriptionRef.current){
         unsubscribe(subscriptionRef.current)
+      }
+      disconnect()
     }
-  }, [])
+  }, [client, client && client.connected])
 
   return (
     <div></div>
