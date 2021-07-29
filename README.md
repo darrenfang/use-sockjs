@@ -42,29 +42,27 @@ import { useSockJs } from 'use-sockjs'
 import { Client, Frame, Message, Subscription } from 'stompjs'
 
 export const MyComponent: React.FunctionComponent = () => {
-  const { client, connect, disconnect, subscribe } = useSockJs()
+  const { connect, disconnect, subscribe } = useSockJs()
 
   const subscriptionRef = useRef<Subscription | null>(null)
 
   // connect websocket when init
   useEffect(() => {
     connect({
-      url: 'http://localhost/ws'
-    })
-  }, [])
-
-  // subscribe topic when client connected
-  useEffect(() => {
-    if (!client || !client.connected) {
-      return
-    }
-
-    subscribe({
-      destination: 'destination',
-      onMessage: message => {
+      url: 'http://localhost/ws',
+      heartbeat: {
+        incoming: 600000,
+        outgoing: 600000
       },
-      onSubscribed: (subscription) => {
-        subscriptionRef.current = subscription
+      onConnected(client) {
+        subscribe({
+          destination: 'destination',
+          onMessage: message => {
+          },
+          onSubscribed: (subscription) => {
+            subscriptionRef.current = subscription
+          }
+        })
       }
     })
 
@@ -74,7 +72,7 @@ export const MyComponent: React.FunctionComponent = () => {
       }
       disconnect()
     }
-  }, [client, client && client.connected])
+  }, [])
 
   return (
     <div></div>
