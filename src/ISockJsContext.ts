@@ -24,7 +24,7 @@
  */
 
 import * as React from 'react'
-import {Client, Frame, Message, Subscription} from 'stompjs'
+import { Client, Frame, Message, Subscription } from 'stompjs'
 
 export interface ISubscribeOptions {
   destination: string
@@ -38,10 +38,14 @@ export interface IConnectOptions {
   debug?: boolean
   headers?: object
   onError?: (error: Frame | string) => any
+  heartbeat?: {
+    incoming: number
+    outgoing: number
+  }
+  onConnected?: (client: Client, frame?: Frame) => any
 }
 
 export interface ISockJsContext {
-  client: Client | null
   connect: (options: IConnectOptions) => void
   disconnect: () => void
   subscribe: (options: ISubscribeOptions) => void
