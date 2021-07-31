@@ -41,14 +41,16 @@ export const SockJsProvider: React.FunctionComponent<Props>
 
   const clientRef = useRef<Client | null>(null)
 
-  const connectHandler = ({
-                            url,
-                            debug,
-                            headers,
-                            onError,
-                            heartbeat,
-                            onConnected
-                          }: IConnectOptions) => {
+  const connectHandler = (options: IConnectOptions) => {
+    const {
+      url,
+      debug,
+      headers,
+      onError,
+      heartbeat,
+      onConnected
+    } = options
+
     if (!clientRef.current) {
       clientRef.current = over(new SockJS(url))
 
@@ -63,7 +65,22 @@ export const SockJsProvider: React.FunctionComponent<Props>
       }
 
       clientRef.current.connect(headers || {}, () => {
-      }, onError || globalErrorHandler)
+      }, (error: Frame | string) => {
+        const frame = error as Frame
+        if (frame && frame.command === 'ERROR') {
+          if (clientRef.current) {
+            clientRef.current.disconnect(() => {
+              clientRef.current = null
+            })
+
+            connectHandler(options)
+          }
+        } else {
+          if (onError) {
+            onError(error)
+          }
+        }
+      })
     }
 
     if (onConnected) {
@@ -99,11 +116,19 @@ export const SockJsProvider: React.FunctionComponent<Props>
   }
 
   const unsubscribeHandler = (subscription: Subscription) => {
-    if (clientRef.current && clientRef.current.connected) {
-      if (subscription && subscription.id) {
 
-        clientRef.current.unsubscribe(subscription.id)
-      }
+    if (!clientRef.current || !clientRef.current.connected) {
+      return
+    }
+
+    if (subscription && subscription.id) {
+      clientRef.current.unsubscribe(subscription.id)
+    }
+
+    if (!clientRef.current.subscriptions || Object.keys(clientRef.current.subscriptions).length === 0) {
+      clientRef.current.disconnect(() => {
+        clientRef.current = null
+      })
     }
   }
 
