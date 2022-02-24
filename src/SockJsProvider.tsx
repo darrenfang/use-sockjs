@@ -115,7 +115,7 @@ export const SockJsProvider: React.FunctionComponent<Props>
     }
   }
 
-  const unsubscribeHandler = (subscription: Subscription) => {
+  const unsubscribeHandler = (subscription?: Subscription) => {
 
     if (!clientRef.current || !clientRef.current.connected) {
       return

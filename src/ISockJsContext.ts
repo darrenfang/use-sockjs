@@ -49,7 +49,7 @@ export interface ISockJsContext {
   connect: (options: IConnectOptions) => void
   disconnect: () => void
   subscribe: (options: ISubscribeOptions) => void
-  unsubscribe: (subscription: Subscription) => void
+  unsubscribe: (subscription?: Subscription) => void
 }
 
 export const SockJsContext = React.createContext<ISockJsContext>({} as ISockJsContext)
